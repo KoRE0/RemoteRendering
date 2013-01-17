@@ -39,15 +39,21 @@ extern "C" {
 };
 
 
+inline int32_t color(int pColorR, int pColorG, int pColorB) {
+     return 0xFF000000 | ((pColorB << 16) & 0x00FF0000)
+                       | ((pColorG << 8) & 0x0000FF00)
+                       | (pColorR & 0x000000FF);
+}
+
 static void fillBitmap( AndroidBitmapInfo*  info, void*  pixels)
 {
     int  yy;
     for (yy = 0; yy < info->height; yy++) {
-        uint16_t*  line = (uint16_t*)pixels;
+        uint32_t*  line = (uint32_t*)pixels;
 		int xx;
 		for (xx = 0; xx < info->width; xx++) {
 			// set white color
-			line[xx] = -1;
+			line[xx] = color(255, 0, 255);
 		}
 		pixels = (char*)pixels + info->stride;
     }
@@ -63,7 +69,7 @@ jstring  Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JNIEnv* env, jobject obj, jobject bitmap)
 {
 
-	LOGI("entered Method: processBitmap");
+	//LOGI("entered Method: processBitmap");
     AndroidBitmapInfo  info;
     void*              pixels;
     int                ret;
@@ -77,7 +83,7 @@ JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JN
         return;
     }
 
-    if (info.format != ANDROID_BITMAP_FORMAT_RGB_565) {
+    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
         LOGE("Bitmap format is not RGB_565 !");
         return;
     }
