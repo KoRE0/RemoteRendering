@@ -15,31 +15,52 @@
  */
 package com.example.hellojni;
 
+
+
+
+import android.R.layout;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.os.Bundle;
 
 
-public class HelloJni extends Activity
+public class HelloJni extends Activity implements OnTouchListener
 {
+	
+	static final int JAVA = 1;
+	static final int NATIVE = 2;
+	
+	public BasicGLSurfaceView mView;
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
         setTitle(stringFromJNI());
-        setContentView(new ProcessedImage(this));
+        //mView = new BasicGLSurfaceView(getApplication());
+        
+        setContentView(R.layout.layout);
+        mView = (BasicGLSurfaceView)findViewById(R.id.GLview);
+        
+        //setContentView(new ProcessedImage(this));
+        
     }
 
     /* A native method that is implemented by the
      * 'hello-jni' native library, which is packaged
      * with this application.
      */
-    public native String  stringFromJNI();
+    public native String stringFromJNI();
+    public native String stringFromServer();
 
 
     /* this is used to load the 'hello-jni' library on application
@@ -50,7 +71,64 @@ public class HelloJni extends Activity
     static {
         System.loadLibrary("hello-jni");
     }
+    
+    public void onClickUseNativeFileTransfer(View v){
+    	setTitle(stringFromServer());
+    }
+    
+    public void onClickUseJavaFileTransfer(View v){
+    	AlertDialog.Builder alert = new AlertDialog.Builder(this);			
+		alert.setTitle("Add new Entry");
+		alert.setMessage("Insert title:");
+		final EditText input = new EditText(this);
+		input.setText("192.168.178.31");
+		alert.setView(input);
+		alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		public void onClick(DialogInterface dialog, int whichButton) {
+			final String text = input.getText().toString();					
+			connect(text, JAVA);
+		  }
+		});			
+		alert.show(); 
+    }
+    public void connect(final String IP, int method){
+    	switch (method) {
+    	case JAVA:
+    		mView.connect(IP);    		
+    		break;
+
+    	default:
+    		break;
+    	}
+    }
+    
+    
+public boolean onTouch (View v, MotionEvent event){
+    	
+    	
+        
+        AlertDialog.Builder alert = new AlertDialog.Builder(this);			
+		alert.setTitle("Add new Entry");
+		alert.setMessage("Insert title:");
+		final EditText input = new EditText(this);
+		input.setText("192.168.178.31");
+		alert.setView(input);
+		alert.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+		public void onClick(DialogInterface dialog, int whichButton) {
+			String text = input.getText().toString();
+			mView.connect(text);
+		  }
+		});			
+		alert.show(); 
+    	return false;
+    	
+    }
+
+	public void onResume(){
+		super.onResume();
+	}
 }
+
 
 
 class ProcessedImage extends View {
@@ -64,7 +142,7 @@ class ProcessedImage extends View {
         final int W = 200;
         final int H = 200;
 
-        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.RGB_565);        
+        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);        
     }
 
     @Override protected void onDraw(Canvas canvas) {

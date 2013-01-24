@@ -25,6 +25,17 @@
 #include <math.h>
 
 
+// socket
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <stdio.h>
+#include <sys/un.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+
 #define  LOG_TAG    "HelloJNI"
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
@@ -34,6 +45,9 @@ extern "C" {
 
 		jstring  Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
         jobject thiz );
+		jstring  Java_com_example_hellojni_HelloJni_stringFromServer( JNIEnv* env,
+		        jobject thiz );
+		jstring Java_com_example_hellojni_HelloJni_initiateTcpConnection(JNIEnv* env, jobject javaThis);
 
 		JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JNIEnv* env, jobject obj, jobject bitmap);
 };
@@ -66,6 +80,91 @@ jstring  Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
     return env->NewStringUTF("Hello from JNI !");
 }
 
+
+jstring Java_com_example_hellojni_HelloJni_initiateTcpConnection(JNIEnv* env, jobject javaThis){
+    int tcp_socket = socket(AF_INET, SOCK_STREAM,0);
+    if(tcp_socket < 0){
+        return env->NewStringUTF("ERROR CREATING SOCKET");
+    }
+    const char* server_host = "192.168.178.31";
+    unsigned short server_port = 7777;
+
+    struct sockaddr_in server_tcp_addr;
+    server_tcp_addr.sin_family = AF_INET;
+    server_tcp_addr.sin_port = htons(server_port);
+    struct hostent *hostp = gethostbyname(server_host);
+    memcpy((char *)&server_tcp_addr.sin_addr.s_addr, hostp->h_addr, hostp->h_length);
+    socklen_t slen = sizeof(server_tcp_addr);
+    if(connect(tcp_socket,(struct sockaddr*)&server_tcp_addr, slen) < 0){ //fails here
+        close(tcp_socket);
+        return env->NewStringUTF("ERROR CONNECTING TO SERVER");
+    }
+
+    char* message = "hello from android!";
+    send(tcp_socket, &message, sizeof(message),0);
+
+
+    return env->NewStringUTF("TCP message sent!");
+}
+
+
+
+jstring  Java_com_example_hellojni_HelloJni_stringFromServer( JNIEnv* env,
+                                                  jobject thiz )
+{
+	LOGI("entered Method: stringFromServer");
+	int sockfd;
+	int len;
+	int port = 7777;
+	struct sockaddr_un address;
+	struct sockaddr_in server;
+	int result;
+	char ch = 'A';
+
+/*  Create a socket for the client.  */
+
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	LOGI("Create a socket for the client.");
+	if(sockfd < 0)
+		LOGE("Creating socket failed.");
+/*  Name the socket, as agreed with the server.  */
+
+
+
+//	address.sun_family = AF_INET;
+//	strcpy(address.sun_path, "192.168.178.31");
+//	len = sizeof(address);
+	memset( &server, 0, sizeof (server));
+	server.sin_family = AF_INET;
+	server.sin_port = htons(7777);
+	//server.sin_addr.s_addr = inet_addr("192.168.178.31");
+	uint32_t addr = inet_addr("192.168.178.31");
+	memcpy( (char *)&server.sin_addr.s_addr, &addr, sizeof(addr));
+	LOGI("Name the socket, as agreed with the server.");
+
+/*  Now connect our socket to the server's socket.  */
+
+	if(connect(sockfd, (struct sockaddr *)&server, sizeof(server)) < 0){
+		LOGE("ERROR while connecting");
+		perror("oops: client1");
+		exit(1);
+	}
+	LOGI("Connection success!");
+
+
+/*  We can now read/write via sockfd.  */
+	LOGI("Sending data...");
+	write(sockfd, &ch, 1);
+	LOGI("Reading data...");
+	read(sockfd, &ch, 1);
+	LOGI("... done");
+	/*
+	printf("char from server = %c\n", ch);
+	*/
+	close(sockfd);
+    return env->NewStringUTF(&ch);
+}
+
 JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JNIEnv* env, jobject obj, jobject bitmap)
 {
 
@@ -84,7 +183,7 @@ JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JN
     }
 
     if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
-        LOGE("Bitmap format is not RGB_565 !");
+        LOGE("Bitmap format is not RGB_8888 !");
         return;
     }
 
