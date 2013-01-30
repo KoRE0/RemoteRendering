@@ -61,6 +61,15 @@ class BasicGLSurfaceView extends GLSurfaceView {
     	t.start();
     }
     
+    public void setTexture(Bitmap bitmap){
+    	final Bitmap bmp = bitmap;
+		queueEvent(new Runnable() {				
+			public void run() {
+				renderer.newTex(bmp);					
+			}
+		});
+    }
+    
     
 
     

@@ -4,9 +4,15 @@
 #include "stdafx.h"
 #include <WinSock.h>
 #include <iostream>
+#include <gdiplus.h>
+#include <windows.h>
+
+
+using namespace Gdiplus;
 
 int _tmain(int argc, _TCHAR* argv[])
-{
+{	 
+	// now create server
 
 	WSADATA WsaDat;
 	SOCKET Socket; 
@@ -79,7 +85,19 @@ int _tmain(int argc, _TCHAR* argv[])
 	std::cout << "Sending a message to client: " << "B" << std::endl;
 	send(Socket, "B", 1, 0);
 
+	std::cout << "Filling testimage " << std::endl;
+	char buff[10000]; 
+	for (int i = 0; i < 10000; i++)
+	{
+		buff[i] = 100;
+	}
+	
+	std::cout << "Sending testimage " << std::endl;
+	send(Socket, buff, 10000, 0);
+	std::cout << "Sending testimage done " << std::endl;
+
 	while(true);	
 	return 0;
+
 }
 

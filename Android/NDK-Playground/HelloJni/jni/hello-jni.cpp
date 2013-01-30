@@ -45,8 +45,8 @@ extern "C" {
 
 		jstring  Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
         jobject thiz );
-		jstring  Java_com_example_hellojni_HelloJni_stringFromServer( JNIEnv* env,
-		        jobject thiz );
+		JNIEXPORT void JNICALL Java_com_example_hellojni_HelloJni_bitmapFromServer( JNIEnv* env,
+		                                                  jobject thiz, jobject bitmap);
 		jstring Java_com_example_hellojni_HelloJni_initiateTcpConnection(JNIEnv* env, jobject javaThis);
 
 		JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JNIEnv* env, jobject obj, jobject bitmap);
@@ -68,6 +68,20 @@ static void fillBitmap( AndroidBitmapInfo*  info, void*  pixels)
 		for (xx = 0; xx < info->width; xx++) {
 			// set white color
 			line[xx] = color(255, 0, 255);
+		}
+		pixels = (char*)pixels + info->stride;
+    }
+}
+
+static void fillBitmapFromBuffer( AndroidBitmapInfo*  info, void*  pixels, char* buffer)
+{
+    int  yy;
+    for (yy = 0; yy < info->height; yy++) {
+        uint32_t*  line = (uint32_t*)pixels;
+		int xx;
+		for (xx = 0; xx < info->width; xx++) {
+			// set color
+			line[xx] = color(buffer[xx], buffer[xx+1], buffer[xx+2]);
 		}
 		pixels = (char*)pixels + info->stride;
     }
@@ -109,8 +123,8 @@ jstring Java_com_example_hellojni_HelloJni_initiateTcpConnection(JNIEnv* env, jo
 
 
 
-jstring  Java_com_example_hellojni_HelloJni_stringFromServer( JNIEnv* env,
-                                                  jobject thiz )
+JNIEXPORT void JNICALL Java_com_example_hellojni_HelloJni_bitmapFromServer( JNIEnv* env,
+                                                  jobject thiz, jobject bitmap )
 {
 	LOGI("entered Method: stringFromServer");
 	int sockfd;
@@ -120,6 +134,32 @@ jstring  Java_com_example_hellojni_HelloJni_stringFromServer( JNIEnv* env,
 	struct sockaddr_in server;
 	int result;
 	char ch = 'A';
+	char image[10000]; // for the testimage (see size of the testimage on serverside)
+
+	// setup bitmap
+
+	//LOGI("entered Method: processBitmap");
+    AndroidBitmapInfo  info;
+    void*              pixels;
+    int                ret;
+    static int         init;
+    if (!init) {
+        init = 1;
+    }
+
+    if ((ret = AndroidBitmap_getInfo(env, bitmap, &info)) < 0) {
+        LOGE("AndroidBitmap_getInfo() failed ! error=%d", ret);
+        return;
+    }
+
+    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) {
+        LOGE("Bitmap format is not RGB_8888 !");
+        return;
+    }
+
+    if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
+        LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
+    }
 
 /*  Create a socket for the client.  */
 
@@ -158,11 +198,18 @@ jstring  Java_com_example_hellojni_HelloJni_stringFromServer( JNIEnv* env,
 	LOGI("Reading data...");
 	read(sockfd, &ch, 1);
 	LOGI("... done");
+	// read testimage
+	LOGI("Reading testimage...");
+	read(sockfd, &image, 10000);
+	//fillBitmap(&info, pixels);
+	fillBitmapFromBuffer(&info, pixels, image);
+
+	LOGI("... done. received ");
 	/*
 	printf("char from server = %c\n", ch);
 	*/
 	close(sockfd);
-    return env->NewStringUTF(&ch);
+	AndroidBitmap_unlockPixels(env, bitmap);
 }
 
 JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JNIEnv* env, jobject obj, jobject bitmap)

@@ -60,7 +60,7 @@ public class HelloJni extends Activity implements OnTouchListener
      * with this application.
      */
     public native String stringFromJNI();
-    public native String stringFromServer();
+    public static native String bitmapFromServer(Bitmap bitmap);
 
 
     /* this is used to load the 'hello-jni' library on application
@@ -73,7 +73,12 @@ public class HelloJni extends Activity implements OnTouchListener
     }
     
     public void onClickUseNativeFileTransfer(View v){
-    	setTitle(stringFromServer());
+        final int W = 100;
+        final int H = 100;
+        Bitmap mBitmap;
+        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);   
+        bitmapFromServer(mBitmap);
+        mView.setTexture(mBitmap);
     }
     
     public void onClickUseJavaFileTransfer(View v){
@@ -142,7 +147,8 @@ class ProcessedImage extends View {
         final int W = 200;
         final int H = 200;
 
-        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);        
+        mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);   
+        
     }
 
     @Override protected void onDraw(Canvas canvas) {
