@@ -73,8 +73,8 @@ public class HelloJni extends Activity implements OnTouchListener
     }
     
     public void onClickUseNativeFileTransfer(View v){
-        final int W = 100;
-        final int H = 100;
+        final int W = 1024;
+        final int H = 768;
         Bitmap mBitmap;
         mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);   
         bitmapFromServer(mBitmap);
@@ -144,8 +144,8 @@ class ProcessedImage extends View {
     public ProcessedImage(Context context) {
         super(context);
 
-        final int W = 200;
-        final int H = 200;
+        final int W = 1024;
+        final int H = 768;
 
         mBitmap = Bitmap.createBitmap(W, H, Bitmap.Config.ARGB_8888);   
         

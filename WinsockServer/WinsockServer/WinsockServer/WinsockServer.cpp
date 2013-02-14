@@ -86,14 +86,14 @@ int _tmain(int argc, _TCHAR* argv[])
 	send(Socket, "B", 1, 0);
 
 	std::cout << "Filling testimage " << std::endl;
-	char buff[10000]; 
-	for (int i = 0; i < 10000; i++)
+	char buff[786432]; 
+	for (int i = 0; i < 786432; i++)
 	{
-		buff[i] = 100;
+		buff[i] = i%255;
 	}
 	
 	std::cout << "Sending testimage " << std::endl;
-	send(Socket, buff, 10000, 0);
+	send(Socket, buff, 786432, 0);
 	std::cout << "Sending testimage done " << std::endl;
 
 	while(true);	

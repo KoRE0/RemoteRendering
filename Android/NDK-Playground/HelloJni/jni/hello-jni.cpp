@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <time.h>
+#include <sys/timeb.h>
 
 
 // socket
@@ -47,8 +49,6 @@ extern "C" {
         jobject thiz );
 		JNIEXPORT void JNICALL Java_com_example_hellojni_HelloJni_bitmapFromServer( JNIEnv* env,
 		                                                  jobject thiz, jobject bitmap);
-		jstring Java_com_example_hellojni_HelloJni_initiateTcpConnection(JNIEnv* env, jobject javaThis);
-
 		JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JNIEnv* env, jobject obj, jobject bitmap);
 };
 
@@ -95,31 +95,7 @@ jstring  Java_com_example_hellojni_HelloJni_stringFromJNI( JNIEnv* env,
 }
 
 
-jstring Java_com_example_hellojni_HelloJni_initiateTcpConnection(JNIEnv* env, jobject javaThis){
-    int tcp_socket = socket(AF_INET, SOCK_STREAM,0);
-    if(tcp_socket < 0){
-        return env->NewStringUTF("ERROR CREATING SOCKET");
-    }
-    const char* server_host = "192.168.178.31";
-    unsigned short server_port = 7777;
 
-    struct sockaddr_in server_tcp_addr;
-    server_tcp_addr.sin_family = AF_INET;
-    server_tcp_addr.sin_port = htons(server_port);
-    struct hostent *hostp = gethostbyname(server_host);
-    memcpy((char *)&server_tcp_addr.sin_addr.s_addr, hostp->h_addr, hostp->h_length);
-    socklen_t slen = sizeof(server_tcp_addr);
-    if(connect(tcp_socket,(struct sockaddr*)&server_tcp_addr, slen) < 0){ //fails here
-        close(tcp_socket);
-        return env->NewStringUTF("ERROR CONNECTING TO SERVER");
-    }
-
-    char* message = "hello from android!";
-    send(tcp_socket, &message, sizeof(message),0);
-
-
-    return env->NewStringUTF("TCP message sent!");
-}
 
 
 
@@ -134,7 +110,10 @@ JNIEXPORT void JNICALL Java_com_example_hellojni_HelloJni_bitmapFromServer( JNIE
 	struct sockaddr_in server;
 	int result;
 	char ch = 'A';
-	char image[10000]; // for the testimage (see size of the testimage on serverside)
+	timeb starttime;
+	timeb finishtime;
+	double timeTaken;
+
 
 	// setup bitmap
 
@@ -160,6 +139,8 @@ JNIEXPORT void JNICALL Java_com_example_hellojni_HelloJni_bitmapFromServer( JNIE
     if ((ret = AndroidBitmap_lockPixels(env, bitmap, &pixels)) < 0) {
         LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
     }
+    int imagesize = info.height*info.width;
+    char image[imagesize]; // for the testimage (see size of the testimage on serverside)
 
 /*  Create a socket for the client.  */
 
@@ -200,9 +181,18 @@ JNIEXPORT void JNICALL Java_com_example_hellojni_HelloJni_bitmapFromServer( JNIE
 	LOGI("... done");
 	// read testimage
 	LOGI("Reading testimage...");
-	read(sockfd, &image, 10000);
+	ftime(&starttime);
+	read(sockfd, &image, imagesize);
+	ftime(&finishtime);
+	timeTaken = finishtime.millitm - starttime.millitm;
+
+	LOGI("Time to get raw bytedata: %f", timeTaken);
 	//fillBitmap(&info, pixels);
+	ftime(&starttime);
 	fillBitmapFromBuffer(&info, pixels, image);
+	ftime(&finishtime);
+	timeTaken = finishtime.millitm - starttime.millitm;
+	LOGI("Time to convert bytedata to ARGB888 format: %f", timeTaken);
 
 	LOGI("... done. received ");
 	/*
@@ -238,7 +228,6 @@ JNIEXPORT void JNICALL Java_com_example_hellojni_ProcessedImage_processBitmap(JN
         LOGE("AndroidBitmap_lockPixels() failed ! error=%d", ret);
     }
 
-    /* Now fill the values with a nice little plasma */
     fillBitmap(&info, pixels);
 
     AndroidBitmap_unlockPixels(env, bitmap);

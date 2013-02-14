@@ -60,7 +60,7 @@ class ConnectionHandler implements Runnable {
         	boolean swap = false;
             System.out.print("Reading pictures...");
             long timestamp = System.currentTimeMillis();
-            File imagefile = new File(System.getProperty( "user.dir" ) + "/Koala.jpg");	
+            File imagefile = new File(System.getProperty( "user.dir" ) + "/Koala.png");	
             BufferedImage imageKoala = ImageIO.read(imagefile);
             imagefile = new File(System.getProperty( "user.dir" ) + "/Penguins.jpg");	
             
@@ -82,10 +82,10 @@ class ConnectionHandler implements Runnable {
 	            oos.writeObject("Sending picture...");   
 	            ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	            if (swap){
-	            	ImageIO.write(imagePenguins, "PNG", baos);	            	
+	            	ImageIO.write(imagePenguins, "BMP", baos);	            	
 	            	swap = false;
 	            }else{
-	            	ImageIO.write(imageKoala, "PNG", baos);
+	            	ImageIO.write(imageKoala, "BMP", baos);
 	            	swap = true;
 	            }
 	            byte[] data = baos.toByteArray();	            

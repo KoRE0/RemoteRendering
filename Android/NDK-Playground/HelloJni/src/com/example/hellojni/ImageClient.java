@@ -36,16 +36,20 @@ public class ImageClient {
             // receive picture
             System.out.println("reading picture...");
             InputStream is = socket.getInputStream();
-            long timestamp = System.currentTimeMillis();
+            
             int length = (Integer) ois.readObject();
+            System.out.println("LENGHT: " + length);
             byte[] img = new byte[length];    	          
             DataInputStream dis = new DataInputStream(is);
+            long timestamp = System.currentTimeMillis();
             if (length > 0) {
                 dis.readFully(img);
             }          
-            System.out.println("...done. Receiving took " + (System.currentTimeMillis() - timestamp)/1000.0f + " seconds for " + img.length + " bytes." );
+            System.out.println("...done. Receiving took " + (System.currentTimeMillis() - timestamp) + " milliseconds for " + img.length + " bytes." );
+            timestamp = System.currentTimeMillis();
             bmp = BitmapFactory.decodeByteArray(img, 0, img.length);
-            System.out.println("Receiving and decoding took " + (System.currentTimeMillis() - timestamp)/1000.0f + " seconds.");
+            
+            System.out.println("Decoding took " + (System.currentTimeMillis() - timestamp) + " milliseconds.");
 
         } catch (UnknownHostException e) {
             e.printStackTrace();
