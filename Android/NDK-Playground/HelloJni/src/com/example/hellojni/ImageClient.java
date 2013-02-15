@@ -21,7 +21,8 @@ public class ImageClient {
     }
 	
     public Bitmap requestImage() {
-    	
+    	long timestamp;
+    	long timestamp2;
     	Bitmap bmp = null;
         try { 
             ObjectOutputStream oos = new ObjectOutputStream(socket.getOutputStream());
@@ -41,11 +42,13 @@ public class ImageClient {
             System.out.println("LENGHT: " + length);
             byte[] img = new byte[length];    	          
             DataInputStream dis = new DataInputStream(is);
-            long timestamp = System.currentTimeMillis();
+            timestamp = System.currentTimeMillis();
             if (length > 0) {
                 dis.readFully(img);
-            }          
-            System.out.println("...done. Receiving took " + (System.currentTimeMillis() - timestamp) + " milliseconds for " + img.length + " bytes." );
+            } 
+            timestamp2 = System.currentTimeMillis();
+            timestamp2 -= timestamp;
+            System.out.println("...done. Receiving took " + timestamp2 + " milliseconds for " + img.length + " bytes." );
             timestamp = System.currentTimeMillis();
             bmp = BitmapFactory.decodeByteArray(img, 0, img.length);
             
