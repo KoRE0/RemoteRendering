@@ -78,7 +78,9 @@ class BasicGLSurfaceView extends GLSurfaceView {
 
     Thread t = new Thread(){
 		public void run(){
-			ImageClient c = new ImageClient();
+			// ImageClient or ImageClientNIO
+			ImageClientNIO c = new ImageClientNIO();
+			//ImageClient c = new ImageClient();
 			try {
 				c.connect(IP);
 			} catch (IOException e1) {
@@ -92,7 +94,7 @@ class BasicGLSurfaceView extends GLSurfaceView {
 //				colors[i] = Color.GREEN;
 //			}			
 //			final Bitmap bmp = Bitmap.createBitmap(colors, 10, 10, Bitmap.Config.ARGB_8888);
-			while(true){
+			//while(true){
 //				try {
 //					Thread.sleep(4000);
 //				} catch (InterruptedException e) {
@@ -106,7 +108,7 @@ class BasicGLSurfaceView extends GLSurfaceView {
 						renderer.newTex(bmp);					
 					}
 				});
-			}
+			//}
 			
 		}
 	};

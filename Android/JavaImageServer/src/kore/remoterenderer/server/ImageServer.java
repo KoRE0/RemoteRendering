@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -13,7 +14,8 @@ import java.lang.Thread;
 import java.net.ServerSocket;
 import java.net.Socket;
 import javax.imageio.ImageIO;
- 
+import java.nio.ByteBuffer;
+
 public class ImageServer {
     private ServerSocket server;
     private int port = 7777;
@@ -92,7 +94,7 @@ class ConnectionHandler implements Runnable {
 	            //send length of bytearray
 	            oos.writeObject(data.length);	            
 	            dos = new DataOutputStream(socket.getOutputStream());	            
-	            dos.write(data);	            
+	            dos.write(data);
             	}            
 	        } catch (ClassNotFoundException e) {
 	            e.printStackTrace();
@@ -103,3 +105,4 @@ class ConnectionHandler implements Runnable {
         }
     }    
 }
+
